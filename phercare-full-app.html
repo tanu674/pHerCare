@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>pHerCare – Smart Women's Health</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --rose:#D95F7A; --rose-light:#F4A7B5; --rose-pale:#FDE8ED;
+  --cream:#FDF8F5; --sage:#6BAF85; --sage-pale:#E4F2EA;
+  --deep:#1E0F24; --muted:#8A6D90; --warn:#E87C3E; --warn-pale:#FEF0E7;
+  --card:#FFFFFF; --border:rgba(139,109,144,0.12);
+  --shadow:0 4px 24px rgba(30,15,36,0.08);
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overflow:hidden}
+body{font-family:'Outfit',sans-serif;background:var(--cream);color:var(--deep);display:flex;flex-direction:column;max-width:430px;margin:0 auto;position:relative;box-shadow:0 0 60px rgba(0,0,0,0.15)}
+.screen{display:none;flex:1;flex-direction:column;overflow:hidden;height:100%}
+.screen.active{display:flex}
+.bottom-nav{display:flex;background:white;border-top:1px solid var(--border);padding:8px 0 20px;flex-shrink:0;box-shadow:0 -4px 20px rgba(30,15,36,0.06)}
+.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;padding:6px 0;font-size:10px;color:var(--muted);font-weight:500;transition:all 0.2s;letter-spacing:0.3px}
+.nav-item.active{color:var(--rose)}
+.nav-icon{font-size:20px;line-height:1}
+.nav-item.active .nav-icon{transform:scale(1.15)}
+.scroll-content{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.scroll-content::-webkit-scrollbar{display:none}
+.topbar{padding:20px 24px 16px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.app-logo{font-family:'Cormorant Garamond',serif;font-size:24px;color:var(--rose)}
+.app-logo span{font-style:italic;color:var(--muted)}
+.notif-btn{width:38px;height:38px;border-radius:12px;background:var(--rose-pale);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;position:relative}
+.notif-dot{position:absolute;top:6px;right:6px;width:8px;height:8px;background:var(--rose);border-radius:50%;border:2px solid white}
+.card{background:var(--card);border-radius:20px;box-shadow:var(--shadow);border:1px solid var(--border)}
+.px{padding:0 20px}
+
+/* DASHBOARD */
+.alert-banner{margin:0 20px 16px;background:linear-gradient(135deg,var(--warn),#C45E28);border-radius:16px;padding:14px 18px;display:flex;align-items:center;gap:12px;animation:pulseBorder 2s infinite}
+@keyframes pulseBorder{0%,100%{box-shadow:0 0 0 0 rgba(232,124,62,0.3)}50%{box-shadow:0 0 0 8px rgba(232,124,62,0)}}
+.alert-icon{font-size:24px}
+.alert-text .alert-title{font-size:13px;font-weight:600;color:white;margin-bottom:2px}
+.alert-text .alert-sub{font-size:12px;color:rgba(255,255,255,0.8)}
+.ph-summary-card{margin:0 20px 16px;background:linear-gradient(135deg,var(--rose),#B84060);border-radius:20px;padding:20px;color:white;position:relative;overflow:hidden}
+.ph-summary-card::before{content:'';position:absolute;top:-30px;right:-30px;width:120px;height:120px;background:rgba(255,255,255,0.08);border-radius:50%}
+.ph-row{display:flex;justify-content:space-between;align-items:flex-end}
+.ph-main-val{font-family:'Cormorant Garamond',serif;font-size:56px;font-weight:600;line-height:1}
+.ph-main-val sup{font-size:22px;vertical-align:super}
+.ph-status-badge{background:rgba(255,255,255,0.2);backdrop-filter:blur(4px);padding:6px 12px;border-radius:30px;font-size:12px;font-weight:500}
+.ph-label-small{font-size:12px;opacity:0.7;margin-bottom:6px}
+.ph-trend{font-size:12px;opacity:0.8;margin-top:8px}
+.ph-trend span{opacity:1;font-weight:600}
+.trend-chart{margin:0 20px 16px}
+.trend-chart-inner{padding:18px 18px 8px}
+.trend-title{font-size:13px;font-weight:600;margin-bottom:16px}
+.chart-bars{display:flex;align-items:flex-end;gap:6px;height:60px}
+.bar-wrap{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px}
+.bar{width:100%;border-radius:6px 6px 0 0;transition:height 0.4s ease}
+.bar-date{font-size:9px;color:var(--muted)}
+.bar.healthy{background:linear-gradient(to top,var(--sage),#9FD4B2)}
+.bar.watch{background:linear-gradient(to top,var(--warn),#F0A06E)}
+.bar.alert{background:linear-gradient(to top,var(--rose),var(--rose-light))}
+.cycle-overview{margin:0 20px 16px;display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.cycle-card{padding:16px}
+.cc-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:8px}
+.cc-value{font-family:'Cormorant Garamond',serif;font-size:32px;font-weight:600;color:var(--rose)}
+.cc-sub{font-size:11px;color:var(--muted);margin-top:2px}
+.phase-pill{display:inline-flex;align-items:center;gap:6px;background:var(--sage-pale);color:var(--sage);font-size:12px;font-weight:500;padding:6px 12px;border-radius:20px;margin-top:8px}
+.quick-actions{margin:0 20px 20px;display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.qa-btn{padding:14px;border-radius:16px;border:none;cursor:pointer;text-align:left;font-family:'Outfit',sans-serif;transition:transform 0.15s}
+.qa-btn:active{transform:scale(0.97)}
+.qa-icon{font-size:22px;margin-bottom:8px;display:block}
+.qa-text{font-size:13px;font-weight:500}
+.qa-sub{font-size:11px;opacity:0.7;margin-top:2px}
+.qa-primary{background:linear-gradient(135deg,var(--rose-pale),#FCD5DD);color:var(--rose)}
+.qa-secondary{background:var(--sage-pale);color:#3D8A5E}
+.qa-tertiary{background:#EEF2FF;color:#5866C2}
+.qa-quaternary{background:#FFF8E7;color:#B07D1A}
+
+/* CYCLE */
+.month-nav{display:flex;align-items:center;justify-content:space-between;padding:0 24px 16px}
+.month-title{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:600}
+.month-nav button{background:none;border:none;font-size:20px;cursor:pointer;color:var(--muted);padding:4px 8px}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:0;margin:0 16px 20px}
+.cal-day-hdr{text-align:center;font-size:11px;font-weight:600;color:var(--muted);padding:8px 0;text-transform:uppercase;letter-spacing:0.5px}
+.cal-day{text-align:center;padding:6px 2px;font-size:13px;cursor:pointer;border-radius:10px;margin:2px;transition:all 0.15s;position:relative;min-height:36px;display:flex;align-items:center;justify-content:center}
+.cal-day:hover{background:var(--rose-pale)}
+.cal-day.period{background:var(--rose);color:white;font-weight:600}
+.cal-day.light{background:var(--rose-light);color:white}
+.cal-day.ovulation{background:var(--sage);color:white;font-weight:600}
+.cal-day.fertile{background:var(--sage-pale);color:var(--sage)}
+.cal-day.today{box-shadow:0 0 0 2px var(--rose);font-weight:600}
+.cal-day.ph-logged::after{content:'';position:absolute;bottom:3px;left:50%;transform:translateX(-50%);width:4px;height:4px;background:var(--rose);border-radius:50%}
+.cycle-legend{margin:0 20px 20px;display:flex;flex-wrap:wrap;gap:8px}
+.legend-item{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted)}
+.legend-dot{width:10px;height:10px;border-radius:50%}
+.cycle-stats{margin:0 20px 20px;display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.stat-card{padding:14px 10px;text-align:center}
+.stat-val{font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:600;color:var(--rose)}
+.stat-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-top:4px}
+.log-period-btn{margin:0 20px 20px;width:calc(100% - 40px);padding:16px;background:linear-gradient(135deg,var(--rose),#B84060);color:white;border:none;border-radius:16px;font-family:'Outfit',sans-serif;font-size:15px;font-weight:600;cursor:pointer;box-shadow:0 6px 20px rgba(217,95,122,0.35);transition:transform 0.15s}
+.log-period-btn:active{transform:scale(0.98)}
+
+/* PH LOG */
+.ph-intro{padding:0 24px 20px}
+.ph-intro p{font-size:14px;color:var(--muted);line-height:1.6}
+.ph-color-picker{margin:0 20px 20px;padding:20px}
+.ph-color-title{font-size:14px;font-weight:600;margin-bottom:6px}
+.ph-color-sub{font-size:12px;color:var(--muted);margin-bottom:18px}
+.ph-strip-visual{width:100%;height:18px;border-radius:9px;background:linear-gradient(to right,#FFD966,#FFAA55,#FF7A45,#E8365D);margin-bottom:20px;box-shadow:0 2px 10px rgba(0,0,0,0.15)}
+.ph-options{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.ph-opt{padding:16px 14px;border-radius:16px;cursor:pointer;border:2px solid transparent;transition:all 0.2s;display:flex;align-items:center;gap:12px}
+.ph-opt.sel{border-color:var(--rose);box-shadow:0 4px 16px rgba(217,95,122,0.2)}
+.ph-opt-dot{width:36px;height:36px;border-radius:50%;flex-shrink:0;box-shadow:0 3px 10px rgba(0,0,0,0.2)}
+.ph-opt-val{font-size:14px;font-weight:600}
+.ph-opt-meaning{font-size:11px;color:var(--muted);margin-top:2px}
+.sym-section{margin:0 20px 20px;padding:18px}
+.sym-section h3{font-size:14px;font-weight:600;margin-bottom:14px}
+.sym-chips{display:flex;flex-wrap:wrap;gap:8px}
+.sym-chip{padding:8px 14px;border-radius:30px;border:1.5px solid var(--border);background:white;font-size:13px;color:var(--muted);cursor:pointer;transition:all 0.2s}
+.sym-chip.on{background:var(--deep);color:white;border-color:var(--deep)}
+.ai-insight{margin:0 20px 20px;padding:18px;background:linear-gradient(135deg,#EEF2FF,#E8EDFF);border-radius:20px;border:1px solid rgba(88,102,194,0.15)}
+.ai-insight-title{font-size:12px;font-weight:600;color:#5866C2;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:8px}
+.ai-insight p{font-size:13px;line-height:1.6}
+.submit-ph-btn{margin:0 20px 24px;width:calc(100% - 40px);padding:16px;background:linear-gradient(135deg,var(--rose),#B84060);color:white;border:none;border-radius:16px;font-family:'Outfit',sans-serif;font-size:15px;font-weight:600;cursor:pointer;box-shadow:0 6px 20px rgba(217,95,122,0.35);transition:all 0.2s}
+.submit-ph-btn:disabled{opacity:0.45;cursor:not-allowed}
+
+/* CHAT */
+#chat{display:none;flex-direction:column}
+#chat.active{display:flex}
+.chat-header{padding:20px 24px 14px;flex-shrink:0;border-bottom:1px solid var(--border);background:white}
+.chat-header-row{display:flex;align-items:center;gap:12px}
+.ai-avatar{width:42px;height:42px;border-radius:14px;background:linear-gradient(135deg,var(--rose),#B84060);display:flex;align-items:center;justify-content:center;font-size:20px}
+.ai-name{font-weight:600;font-size:16px}
+.ai-status{font-size:12px;color:var(--sage);display:flex;align-items:center;gap:4px}
+.ai-status::before{content:'';width:6px;height:6px;background:var(--sage);border-radius:50%;display:inline-block}
+.chat-messages{flex:1;overflow-y:auto;padding:16px 16px 8px;display:flex;flex-direction:column;gap:12px}
+.chat-messages::-webkit-scrollbar{display:none}
+.msg{display:flex;gap:8px;max-width:85%;animation:msgIn 0.3s ease}
+@keyframes msgIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.msg.user{align-self:flex-end;flex-direction:row-reverse}
+.msg-bubble{padding:12px 16px;border-radius:18px;font-size:14px;line-height:1.5}
+.msg.ai .msg-bubble{background:white;border:1px solid var(--border);border-radius:18px 18px 18px 4px;box-shadow:0 2px 10px rgba(30,15,36,0.06)}
+.msg.user .msg-bubble{background:linear-gradient(135deg,var(--rose),#B84060);color:white;border-radius:18px 18px 4px 18px}
+.msg-avatar{width:30px;height:30px;border-radius:10px;background:linear-gradient(135deg,var(--rose),#B84060);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;align-self:flex-end}
+.quick-replies{display:flex;flex-wrap:wrap;gap:6px;padding:0 16px 8px;flex-shrink:0}
+.qr-chip{padding:8px 14px;border-radius:20px;background:white;border:1.5px solid var(--border);font-size:12px;color:var(--muted);cursor:pointer;transition:all 0.2s;white-space:nowrap}
+.qr-chip:active{background:var(--rose-pale);border-color:var(--rose);color:var(--rose)}
+.chat-input-row{display:flex;gap:8px;padding:10px 16px 24px;flex-shrink:0;background:white;border-top:1px solid var(--border)}
+.chat-input{flex:1;border:1.5px solid var(--border);border-radius:16px;padding:11px 16px;font-family:'Outfit',sans-serif;font-size:14px;outline:none;transition:border-color 0.2s;background:var(--cream)}
+.chat-input:focus{border-color:var(--rose);background:white}
+.send-btn{width:44px;height:44px;border-radius:14px;background:linear-gradient(135deg,var(--rose),#B84060);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;color:white;flex-shrink:0;box-shadow:0 4px 12px rgba(217,95,122,0.35);transition:transform 0.15s}
+.send-btn:active{transform:scale(0.93)}
+.typing{display:flex;gap:4px;align-items:center;padding:12px 16px}
+.typing span{width:7px;height:7px;background:var(--muted);border-radius:50%;animation:bounce 1.2s infinite}
+.typing span:nth-child(2){animation-delay:0.2s}
+.typing span:nth-child(3){animation-delay:0.4s}
+@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+
+/* EDUCATION */
+.edu-hero{margin:0 20px 20px;padding:24px;background:linear-gradient(135deg,#2C1A2E,#4A2660);border-radius:20px;color:white}
+.edu-hero h3{font-family:'Cormorant Garamond',serif;font-size:22px;margin-bottom:6px}
+.edu-hero p{font-size:13px;opacity:0.75;line-height:1.5}
+.edu-hero .article-count{margin-top:14px;font-size:12px;background:rgba(255,255,255,0.15);display:inline-block;padding:5px 12px;border-radius:20px}
+.edu-categories{display:flex;gap:8px;padding:0 20px 16px;overflow-x:auto}
+.edu-categories::-webkit-scrollbar{display:none}
+.cat-pill{padding:8px 16px;border-radius:20px;white-space:nowrap;font-size:13px;cursor:pointer;border:1.5px solid var(--border);background:white;color:var(--muted);flex-shrink:0;transition:all 0.2s}
+.cat-pill.active{background:var(--deep);color:white;border-color:var(--deep)}
+.articles-list{padding:0 20px 20px;display:flex;flex-direction:column;gap:12px}
+.article-card{padding:18px;display:flex;gap:14px;cursor:pointer;transition:transform 0.15s;border-radius:18px!important}
+.article-card:active{transform:scale(0.98)}
+.article-emoji{font-size:32px;width:52px;height:52px;background:var(--rose-pale);border-radius:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.article-body{flex:1}
+.article-cat{font-size:10px;text-transform:uppercase;letter-spacing:0.8px;color:var(--rose);font-weight:600;margin-bottom:4px}
+.article-title{font-size:14px;font-weight:600;line-height:1.35;margin-bottom:4px}
+.article-sub{font-size:12px;color:var(--muted);line-height:1.4}
+.article-read{font-size:11px;color:var(--muted);margin-top:8px}
+
+/* MODALS */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(30,15,36,0.55);z-index:200;align-items:flex-end;justify-content:center;backdrop-filter:blur(4px)}
+.modal-overlay.show{display:flex;animation:fadeIn 0.2s ease}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.modal-sheet{background:white;border-radius:24px 24px 0 0;width:100%;max-height:85vh;overflow-y:auto;animation:slideUp 0.35s cubic-bezier(0.34,1.56,0.64,1)}
+.modal-sheet::-webkit-scrollbar{display:none}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.modal-handle{width:36px;height:4px;background:var(--border);border-radius:2px;margin:12px auto 0}
+.modal-content{padding:20px 24px 40px}
+.modal-cat{font-size:11px;text-transform:uppercase;letter-spacing:0.8px;color:var(--rose);font-weight:600;margin-bottom:8px}
+.modal-title{font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:600;margin-bottom:16px;line-height:1.2}
+.modal-body p{font-size:14px;color:#4A3A50;line-height:1.7;margin-bottom:14px}
+.modal-body h4{font-size:15px;font-weight:600;margin:20px 0 8px}
+.modal-body ul{padding-left:20px}
+.modal-body ul li{font-size:14px;color:#4A3A50;line-height:1.7;margin-bottom:4px}
+.modal-close{float:right;background:var(--rose-pale);border:none;border-radius:12px;padding:8px 16px;font-family:'Outfit',sans-serif;font-size:13px;font-weight:600;color:var(--rose);cursor:pointer}
+.notif-panel{display:none;position:fixed;inset:0;background:rgba(30,15,36,0.55);z-index:150;align-items:flex-start;justify-content:center;padding-top:70px;backdrop-filter:blur(4px)}
+.notif-panel.show{display:flex;animation:fadeIn 0.2s ease}
+.notif-sheet{background:white;border-radius:20px;width:calc(100% - 32px);max-height:70vh;overflow-y:auto;animation:slideDown 0.3s ease;box-shadow:0 20px 60px rgba(30,15,36,0.25)}
+.notif-sheet::-webkit-scrollbar{display:none}
+@keyframes slideDown{from{opacity:0;transform:translateY(-20px)}to{opacity:1;transform:translateY(0)}}
+.notif-header{padding:18px 20px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+.notif-header h3{font-size:16px;font-weight:600}
+.notif-close{background:none;border:none;font-size:20px;cursor:pointer;color:var(--muted)}
+.notif-item{padding:14px 20px;border-bottom:1px solid var(--border);display:flex;gap:12px;align-items:flex-start}
+.notif-item:last-child{border-bottom:none}
+.notif-item-icon{width:38px;height:38px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.notif-item-icon.warn{background:var(--warn-pale)}
+.notif-item-icon.info{background:var(--sage-pale)}
+.notif-item-icon.reminder{background:var(--rose-pale)}
+.notif-title{font-size:13px;font-weight:600;margin-bottom:2px}
+.notif-sub{font-size:12px;color:var(--muted);line-height:1.4}
+.notif-time{font-size:11px;color:var(--rose-light);margin-top:4px}
+
+/* ANIMATIONS */
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+.a1{animation:fadeUp 0.5s 0.00s ease both}
+.a2{animation:fadeUp 0.5s 0.08s ease both}
+.a3{animation:fadeUp 0.5s 0.16s ease both}
+.a4{animation:fadeUp 0.5s 0.24s ease both}
+.a5{animation:fadeUp 0.5s 0.32s ease both}
+
+.toast{position:fixed;bottom:100px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--deep);color:white;padding:12px 20px;border-radius:12px;font-size:13px;font-weight:500;z-index:300;opacity:0;transition:all 0.3s;pointer-events:none;white-space:nowrap}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+</style>
+</head>
+<body>
+
+<!-- ══ DASHBOARD ══ -->
+<div class="screen active" id="dash">
+  <div class="topbar a1">
+    <div class="app-logo">pH<span>er</span>Care</div>
+    <button class="notif-btn" onclick="toggleNotif()">🔔<span class="notif-dot"></span></button>
+  </div>
+  <div class="scroll-content">
+    <div class="px a1" style="margin-bottom:16px">
+      <div style="font-size:13px;color:var(--muted)">Good morning,</div>
+      <div style="font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:600">Priya <em style="font-style:italic;color:var(--rose)">✨</em></div>
+    </div>
+    <div class="alert-banner a2">
+      <div class="alert-icon">⚠️</div>
+      <div class="alert-text">
+        <div class="alert-title">pH Pattern Alert</div>
+        <div class="alert-sub">Your pH was elevated 3 days in a row. Consider consulting a doctor.</div>
+      </div>
+    </div>
+    <div class="ph-summary-card a2">
+      <div class="ph-label-small">Latest pH Reading</div>
+      <div class="ph-row">
+        <div class="ph-main-val">4.8<sup>pH</sup></div>
+        <div class="ph-status-badge">⚠️ Slightly High</div>
+      </div>
+      <div class="ph-trend">Logged today at 8:42 AM · <span>+0.3 from last week</span></div>
+    </div>
+    <div class="trend-chart card a3">
+      <div class="trend-chart-inner">
+        <div class="trend-title">📊 7-Day pH Trend</div>
+        <div class="chart-bars">
+          <div class="bar-wrap"><div class="bar healthy" style="height:38px"></div><div class="bar-date">M</div></div>
+          <div class="bar-wrap"><div class="bar healthy" style="height:32px"></div><div class="bar-date">T</div></div>
+          <div class="bar-wrap"><div class="bar healthy" style="height:42px"></div><div class="bar-date">W</div></div>
+          <div class="bar-wrap"><div class="bar watch" style="height:50px"></div><div class="bar-date">T</div></div>
+          <div class="bar-wrap"><div class="bar watch" style="height:54px"></div><div class="bar-date">F</div></div>
+          <div class="bar-wrap"><div class="bar alert" style="height:58px"></div><div class="bar-date">S</div></div>
+          <div class="bar-wrap"><div class="bar watch" style="height:48px"></div><div class="bar-date">S</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="cycle-overview a4">
+      <div class="cycle-card card">
+        <div class="cc-label">Cycle Day</div>
+        <div class="cc-value">14</div>
+        <div class="cc-sub">of 28 days</div>
+        <div class="phase-pill">🌸 Ovulation</div>
+      </div>
+      <div class="cycle-card card">
+        <div class="cc-label">Next Period</div>
+        <div class="cc-value">14</div>
+        <div class="cc-sub">days away</div>
+        <div class="phase-pill" style="background:var(--rose-pale);color:var(--rose)">📅 Mar 5</div>
+      </div>
+    </div>
+    <div class="quick-actions a5">
+      <button class="qa-btn qa-primary" onclick="goTo('phlog')"><span class="qa-icon">🧪</span><div class="qa-text">Log pH</div><div class="qa-sub">Scan or manual</div></button>
+      <button class="qa-btn qa-secondary" onclick="goTo('chat')"><span class="qa-icon">💬</span><div class="qa-text">Ask AI</div><div class="qa-sub">Symptom guide</div></button>
+      <button class="qa-btn qa-tertiary" onclick="goTo('edu')"><span class="qa-icon">📚</span><div class="qa-text">Learn</div><div class="qa-sub">Health library</div></button>
+      <button class="qa-btn qa-quaternary" onclick="goTo('cycle')"><span class="qa-icon">📅</span><div class="qa-text">Cycle</div><div class="qa-sub">Track period</div></button>
+    </div>
+  </div>
+  <div class="bottom-nav">
+    <div class="nav-item active" onclick="goTo('dash')"><div class="nav-icon">🏠</div>Home</div>
+    <div class="nav-item" onclick="goTo('cycle')"><div class="nav-icon">📅</div>Cycle</div>
+    <div class="nav-item" onclick="goTo('phlog')"><div class="nav-icon">🧪</div>pH Log</div>
+    <div class="nav-item" onclick="goTo('chat')"><div class="nav-icon">💬</div>AI Chat</div>
+    <div class="nav-item" onclick="goTo('edu')"><div class="nav-icon">📚</div>Learn</div>
+  </div>
+</div>
+
+<!-- ══ CYCLE TRACKER ══ -->
+<div class="screen" id="cycle">
+  <div class="topbar a1"><div class="app-logo">pH<span>er</span>Care</div><button class="notif-btn" onclick="toggleNotif()">🔔<span class="notif-dot"></span></button></div>
+  <div class="scroll-content">
+    <div class="month-nav a1">
+      <button>‹</button>
+      <div class="month-title">February 2026</div>
+      <button>›</button>
+    </div>
+    <div class="cal-grid a2" id="calGrid"></div>
+    <div class="cycle-legend a3">
+      <div class="legend-item"><div class="legend-dot" style="background:var(--rose)"></div>Period</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--rose-light)"></div>Light flow</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--sage)"></div>Ovulation</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--sage-pale);border:1px solid var(--sage)"></div>Fertile</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--rose)"></div>pH logged ·</div>
+    </div>
+    <div class="cycle-stats a4">
+      <div class="stat-card card"><div class="stat-val">28</div><div class="stat-label">Avg Cycle</div></div>
+      <div class="stat-card card"><div class="stat-val">5</div><div class="stat-label">Period Days</div></div>
+      <div class="stat-card card"><div class="stat-val">4.1</div><div class="stat-label">Avg pH</div></div>
+    </div>
+    <button class="log-period-btn a5" onclick="showToast('Period day logged! ✓')">+ Log Today as Period Day</button>
+  </div>
+  <div class="bottom-nav">
+    <div class="nav-item" onclick="goTo('dash')"><div class="nav-icon">🏠</div>Home</div>
+    <div class="nav-item active" onclick="goTo('cycle')"><div class="nav-icon">📅</div>Cycle</div>
+    <div class="nav-item" onclick="goTo('phlog')"><div class="nav-icon">🧪</div>pH Log</div>
+    <div class="nav-item" onclick="goTo('chat')"><div class="nav-icon">💬</div>AI Chat</div>
+    <div class="nav-item" onclick="goTo('edu')"><div class="nav-icon">📚</div>Learn</div>
+  </div>
+</div>
+
+<!-- ══ PH LOG ══ -->
+<div class="screen" id="phlog">
+  <div class="topbar a1"><div class="app-logo">pH<span>er</span>Care</div><button class="notif-btn" onclick="toggleNotif()">🔔<span class="notif-dot"></span></button></div>
+  <div class="scroll-content">
+    <div class="ph-intro a1">
+      <div style="font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:600;margin-bottom:6px">Log your <em style="font-style:italic;color:var(--rose)">pH reading</em></div>
+      <p>Match the colour on your pHerCare strip to the closest option below.</p>
+    </div>
+    <div class="ph-color-picker card a2">
+      <div class="ph-color-title">pH Strip Colour Guide</div>
+      <div class="ph-color-sub">Hold your strip next to this gradient</div>
+      <div class="ph-strip-visual"></div>
+      <div class="ph-options">
+        <div class="ph-opt" style="background:#FFF9E6" onclick="selPH(this,'3.5–4.0','Healthy','healthy')"><div class="ph-opt-dot" style="background:#FFD966"></div><div><div class="ph-opt-val">3.5 – 4.0</div><div class="ph-opt-meaning">✅ Healthy</div></div></div>
+        <div class="ph-opt" style="background:#FFF3E0" onclick="selPH(this,'4.0–4.5','Normal','healthy')"><div class="ph-opt-dot" style="background:#FFAA55"></div><div><div class="ph-opt-val">4.0 – 4.5</div><div class="ph-opt-meaning">✅ Normal</div></div></div>
+        <div class="ph-opt" style="background:#FEF0E7" onclick="selPH(this,'4.5–5.5','Monitor','watch')"><div class="ph-opt-dot" style="background:#FF7A45"></div><div><div class="ph-opt-val">4.5 – 5.5</div><div class="ph-opt-meaning">⚠️ Monitor</div></div></div>
+        <div class="ph-opt" style="background:#FDE8ED" onclick="selPH(this,'5.5+','Alert','alert')"><div class="ph-opt-dot" style="background:#E8365D"></div><div><div class="ph-opt-val">5.5+</div><div class="ph-opt-meaning">🚨 Alert</div></div></div>
+      </div>
+    </div>
+    <div class="sym-section card a3">
+      <h3>Symptoms (optional)</h3>
+      <div class="sym-chips">
+        <div class="sym-chip" onclick="this.classList.toggle('on')">Itching</div>
+        <div class="sym-chip" onclick="this.classList.toggle('on')">Unusual odour</div>
+        <div class="sym-chip" onclick="this.classList.toggle('on')">Discharge change</div>
+        <div class="sym-chip" onclick="this.classList.toggle('on')">Burning</div>
+        <div class="sym-chip" onclick="this.classList.toggle('on')">Cramps</div>
+        <div class="sym-chip" onclick="this.classList.toggle('on')">Bloating</div>
+        <div class="sym-chip" onclick="this.classList.toggle('on')">No symptoms</div>
+      </div>
+    </div>
+    <div class="ai-insight a4" id="aiInsight" style="display:none">
+      <div class="ai-insight-title">🤖 AI Insight</div>
+      <p id="aiInsightText"></p>
+    </div>
+    <button class="submit-ph-btn a5" id="submitPhBtn" disabled onclick="submitPHLog()">Select a pH reading to continue</button>
+  </div>
+  <div class="bottom-nav">
+    <div class="nav-item" onclick="goTo('dash')"><div class="nav-icon">🏠</div>Home</div>
+    <div class="nav-item" onclick="goTo('cycle')"><div class="nav-icon">📅</div>Cycle</div>
+    <div class="nav-item active" onclick="goTo('phlog')"><div class="nav-icon">🧪</div>pH Log</div>
+    <div class="nav-item" onclick="goTo('chat')"><div class="nav-icon">💬</div>AI Chat</div>
+    <div class="nav-item" onclick="goTo('edu')"><div class="nav-icon">📚</div>Learn</div>
+  </div>
+</div>
+
+<!-- ══ AI CHAT ══ -->
+<div class="screen" id="chat">
+  <div class="chat-header">
+    <div class="chat-header-row">
+      <div class="ai-avatar">🤖</div>
+      <div><div class="ai-name">pHerCare AI</div><div class="ai-status">Online · Symptom guide</div></div>
+    </div>
+  </div>
+  <div class="chat-messages" id="chatMessages">
+    <div class="msg ai">
+      <div class="msg-avatar">🤖</div>
+      <div class="msg-bubble">Hi Priya! 👋 I'm your pHerCare health assistant. I can help you understand your pH readings, track symptoms, and give personalised advice. What's on your mind today?</div>
+    </div>
+  </div>
+  <div class="quick-replies" id="quickReplies">
+    <div class="qr-chip" onclick="sendQuick('My pH was 4.8, is that okay?')">pH was 4.8 🧪</div>
+    <div class="qr-chip" onclick="sendQuick('I have unusual discharge')">Unusual discharge</div>
+    <div class="qr-chip" onclick="sendQuick('What does BV mean?')">What is BV?</div>
+    <div class="qr-chip" onclick="sendQuick('When should I see a doctor?')">See a doctor?</div>
+  </div>
+  <div class="chat-input-row">
+    <input class="chat-input" id="chatInput" placeholder="Ask about your symptoms…" onkeydown="if(event.key==='Enter')sendChat()"/>
+    <button class="send-btn" onclick="sendChat()">➤</button>
+  </div>
+  <div class="bottom-nav">
+    <div class="nav-item" onclick="goTo('dash')"><div class="nav-icon">🏠</div>Home</div>
+    <div class="nav-item" onclick="goTo('cycle')"><div class="nav-icon">📅</div>Cycle</div>
+    <div class="nav-item" onclick="goTo('phlog')"><div class="nav-icon">🧪</div>pH Log</div>
+    <div class="nav-item active" onclick="goTo('chat')"><div class="nav-icon">💬</div>AI Chat</div>
+    <div class="nav-item" onclick="goTo('edu')"><div class="nav-icon">📚</div>Learn</div>
+  </div>
+</div>
+
+<!-- ══ EDUCATION ══ -->
+<div class="screen" id="edu">
+  <div class="topbar a1"><div class="app-logo">pH<span>er</span>Care</div><button class="notif-btn" onclick="toggleNotif()">🔔<span class="notif-dot"></span></button></div>
+  <div class="scroll-content">
+    <div class="edu-hero a1">
+      <h3>Your Health Library</h3>
+      <p>Evidence-based articles on vaginal health, written for everyday women.</p>
+      <div class="article-count">📖 12 articles · Updated weekly</div>
+    </div>
+    <div class="edu-categories a2">
+      <div class="cat-pill active" onclick="filterCat(this)">All</div>
+      <div class="cat-pill" onclick="filterCat(this)">pH & Infections</div>
+      <div class="cat-pill" onclick="filterCat(this)">Menstruation</div>
+      <div class="cat-pill" onclick="filterCat(this)">Nutrition</div>
+      <div class="cat-pill" onclick="filterCat(this)">See a Doctor</div>
+    </div>
+    <div class="articles-list a3">
+      <div class="article-card card" onclick="openArticle(0)">
+        <div class="article-emoji">🧫</div>
+        <div class="article-body"><div class="article-cat">pH & Infections</div><div class="article-title">What is Bacterial Vaginosis and How to Detect It Early</div><div class="article-sub">Learn how pH above 4.5 relates to BV and what symptoms to watch for.</div><div class="article-read">5 min read</div></div>
+      </div>
+      <div class="article-card card" onclick="openArticle(1)">
+        <div class="article-emoji">🌸</div>
+        <div class="article-body"><div class="article-cat">Menstruation</div><div class="article-title">Why Your pH Changes During Your Period</div><div class="article-sub">Period blood is alkaline — here's how that affects your vaginal health.</div><div class="article-read">4 min read</div></div>
+      </div>
+      <div class="article-card card" onclick="openArticle(2)">
+        <div class="article-emoji">🥗</div>
+        <div class="article-body"><div class="article-cat">Nutrition</div><div class="article-title">Foods That Support a Healthy Vaginal pH</div><div class="article-sub">Probiotics, fermented foods, and what to avoid for vaginal balance.</div><div class="article-read">6 min read</div></div>
+      </div>
+      <div class="article-card card" onclick="openArticle(3)">
+        <div class="article-emoji">🩺</div>
+        <div class="article-body"><div class="article-cat">See a Doctor</div><div class="article-title">Red Flags: When Your pH Readings Need Medical Attention</div><div class="article-sub">Understanding when self-monitoring isn't enough.</div><div class="article-read">3 min read</div></div>
+      </div>
+      <div class="article-card card" onclick="openArticle(4)">
+        <div class="article-emoji">🔬</div>
+        <div class="article-body"><div class="article-cat">pH & Infections</div><div class="article-title">Yeast Infections vs BV: What's the Difference?</div><div class="article-sub">Both cause discomfort but have very different causes and treatments.</div><div class="article-read">5 min read</div></div>
+      </div>
+    </div>
+  </div>
+  <div class="bottom-nav">
+    <div class="nav-item" onclick="goTo('dash')"><div class="nav-icon">🏠</div>Home</div>
+    <div class="nav-item" onclick="goTo('cycle')"><div class="nav-icon">📅</div>Cycle</div>
+    <div class="nav-item" onclick="goTo('phlog')"><div class="nav-icon">🧪</div>pH Log</div>
+    <div class="nav-item" onclick="goTo('chat')"><div class="nav-icon">💬</div>AI Chat</div>
+    <div class="nav-item active" onclick="goTo('edu')"><div class="nav-icon">📚</div>Learn</div>
+  </div>
+</div>
+
+<!-- ══ NOTIFICATIONS ══ -->
+<div class="notif-panel" id="notifPanel" onclick="closeNotif(event)">
+  <div class="notif-sheet">
+    <div class="notif-header"><h3>Notifications</h3><button class="notif-close" onclick="toggleNotif()">✕</button></div>
+    <div class="notif-item"><div class="notif-item-icon warn">⚠️</div><div><div class="notif-title">pH Pattern Alert</div><div class="notif-sub">Your pH has been above 4.5 for 3 consecutive readings. Consider speaking to a healthcare provider.</div><div class="notif-time">2 hours ago</div></div></div>
+    <div class="notif-item"><div class="notif-item-icon reminder">📅</div><div><div class="notif-title">Period Reminder</div><div class="notif-sub">Your period is predicted to start in 14 days. Stock up on your pHerCare pads!</div><div class="notif-time">8 hours ago</div></div></div>
+    <div class="notif-item"><div class="notif-item-icon info">💡</div><div><div class="notif-title">New Article Added</div><div class="notif-sub">We published: "Foods That Support a Healthy Vaginal pH". Check your library.</div><div class="notif-time">Yesterday</div></div></div>
+    <div class="notif-item"><div class="notif-item-icon info">🌸</div><div><div class="notif-title">Ovulation Window</div><div class="notif-sub">You're in your fertile window. Slightly elevated pH is normal during ovulation.</div><div class="notif-time">2 days ago</div></div></div>
+  </div>
+</div>
+
+<!-- ══ ARTICLE MODAL ══ -->
+<div class="modal-overlay" id="articleModal" onclick="closeArticle(event)">
+  <div class="modal-sheet"><div class="modal-handle"></div><div class="modal-content" id="articleContent"></div></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const articles=[
+  {cat:'pH & Infections',title:'What is Bacterial Vaginosis and How to Detect It Early',body:`<p>Bacterial Vaginosis (BV) is the most common vaginal condition affecting women of reproductive age. It occurs when the natural balance of bacteria in the vagina is disrupted — specifically when harmful bacteria outnumber the beneficial Lactobacillus strains.</p><h4>How pH Helps Detect It</h4><p>A healthy vaginal pH is between 3.8 and 4.5. BV typically raises pH above 4.5, making pH monitoring one of the earliest detection tools available. This is exactly what pHerCare's smart strip measures.</p><h4>Common Symptoms</h4><ul><li>Thin, grey or white watery discharge</li><li>A fishy or "off" odour, especially after sex</li><li>Mild itching or burning</li><li>Often, NO symptoms at all</li></ul><h4>What to Do</h4><p>If your pH reads above 4.5 consistently for 3+ days and you notice any symptoms, please consult a gynaecologist. BV is easily treated with antibiotics and should not be left untreated as it can affect fertility over time.</p>`},
+  {cat:'Menstruation',title:'Why Your pH Changes During Your Period',body:`<p>If you've noticed your pH reading seems higher during your period, you're not imagining it. Menstrual blood has a pH of about 7.4 — much higher than your normal vaginal pH of 3.8–4.5. This temporarily raises your overall vaginal pH.</p><h4>Is This Normal?</h4><p>Yes, completely. A slightly elevated pH during menstruation is expected and does not indicate infection. Your pH should return to its normal range within a few days of your period ending.</p><h4>Why It Matters for Logging</h4><p>When using pHerCare, we factor your cycle day into our AI risk assessment. A pH of 5.0 on Day 3 of your period is treated very differently from a pH of 5.0 on Day 20. This is why consistent logging throughout your cycle gives you the most accurate picture.</p><h4>Tips During Menstruation</h4><ul><li>Change pads frequently to reduce bacterial overgrowth</li><li>Avoid scented products inside the vagina</li><li>Stay hydrated — it helps maintain natural flora balance</li></ul>`},
+  {cat:'Nutrition',title:'Foods That Support a Healthy Vaginal pH',body:`<p>What you eat directly affects your vaginal microbiome. A diet rich in certain foods can help maintain the acidic environment that keeps harmful bacteria in check.</p><h4>Foods to Include</h4><ul><li><strong>Probiotic foods:</strong> Yoghurt, kefir, kimchi, sauerkraut</li><li><strong>Cranberries:</strong> Help prevent bacteria from adhering to vaginal walls</li><li><strong>Garlic:</strong> Natural antimicrobial properties</li><li><strong>Leafy greens:</strong> Support hormonal balance</li><li><strong>Water:</strong> Staying hydrated supports natural secretions</li></ul><h4>Foods to Limit</h4><ul><li>Refined sugars — feeds harmful yeast and bacteria</li><li>Processed foods — disrupts gut and vaginal microbiome</li><li>Excessive alcohol — can lower Lactobacillus populations</li></ul><p>While diet alone won't cure infections, it plays a meaningful supporting role in keeping your pH naturally balanced.</p>`},
+  {cat:'See a Doctor',title:'Red Flags: When Your pH Readings Need Medical Attention',body:`<p>pHerCare is a powerful early-detection tool, but it works best as a complement to professional healthcare — not a replacement. Here's when to put down the app and book an appointment.</p><h4>See a Doctor If:</h4><ul><li>Your pH stays above 4.5 for 3 or more consecutive readings</li><li>You experience a persistent fishy or unusual odour</li><li>Discharge changes colour to yellow, green, or grey</li><li>Itching, burning, or pain during urination persists</li><li>You experience pelvic pain</li><li>Symptoms appear alongside fever</li></ul><h4>What to Tell Your Doctor</h4><p>Show them your pHerCare pH log history. Your consistent readings give doctors valuable data they'd otherwise need a clinical test to obtain. This can save time and lead to faster diagnosis.</p>`},
+  {cat:'pH & Infections',title:"Yeast Infections vs BV: What's the Difference?",body:`<p>Both yeast infections and bacterial vaginosis cause discomfort, but they're caused by completely different organisms and require different treatments.</p><h4>Bacterial Vaginosis (BV)</h4><ul><li>Caused by bacterial imbalance</li><li>pH typically above 4.5</li><li>Thin, watery grey/white discharge</li><li>Fishy odour (especially after sex)</li><li>Treated with antibiotics</li></ul><h4>Yeast Infection (Candidiasis)</h4><ul><li>Caused by Candida fungus overgrowth</li><li>pH usually normal (3.8–4.5)</li><li>Thick, white, cottage-cheese-like discharge</li><li>Intense itching and burning</li><li>No fishy odour</li><li>Treated with antifungal medication</li></ul><h4>How pHerCare Helps</h4><p>Because yeast infections don't significantly raise pH and BV does, your pH reading is a useful differentiating clue. A pH of 3.8–4.5 with intense itching points more toward yeast. A pH above 4.5 with odour suggests BV. Always confirm with a doctor before treating.</p>`}
+];
+
+function goTo(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+// Calendar
+(function(){
+  const g=document.getElementById('calGrid');
+  ['Su','Mo','Tu','We','Th','Fr','Sa'].forEach(d=>{const h=document.createElement('div');h.className='cal-day-hdr';h.textContent=d;g.appendChild(h)});
+  const periods=[3,4,5,6,7],lightPeriods=[6,7],ovulation=19,fertile=[17,18,19,20,21],phLogged=[5,10,14,17,19],today=19;
+  for(let i=1;i<=28;i++){
+    const el=document.createElement('div');el.className='cal-day';el.textContent=i;
+    if(periods.includes(i)){el.classList.add('period');if(lightPeriods.includes(i))el.classList.add('light')}
+    else if(i===ovulation)el.classList.add('ovulation');
+    else if(fertile.includes(i))el.classList.add('fertile');
+    if(i===today)el.classList.add('today');
+    if(phLogged.includes(i))el.classList.add('ph-logged');
+    el.onclick=()=>showToast(`Feb ${i} selected`);
+    g.appendChild(el);
+  }
+})();
+
+// pH log
+let selPHVal=null;
+function selPH(el,val,label,type){
+  document.querySelectorAll('.ph-opt').forEach(o=>o.classList.remove('sel'));
+  el.classList.add('sel');selPHVal={val,label,type};
+  const btn=document.getElementById('submitPhBtn');
+  btn.disabled=false;btn.textContent=`Log pH ${val} (${label}) →`;
+  const msgs={healthy:'Your pH is in the healthy range. Lactobacillus bacteria are doing their job! Maintain this through probiotic-rich foods and consistent hygiene.',watch:'Your pH is slightly elevated. This can occur during ovulation or after sex. Log again in 24–48 hours. If it persists, consider consulting your doctor.',alert:'⚠️ pH above 5.5 may indicate bacterial vaginosis or another infection. Please do not self-medicate. We recommend booking a doctor appointment soon.'};
+  document.getElementById('aiInsight').style.display='block';
+  document.getElementById('aiInsightText').textContent=msgs[type];
+}
+function submitPHLog(){if(!selPHVal)return;showToast('pH reading logged ✓');setTimeout(()=>goTo('dash'),1200)}
+
+// Chat
+const aiR={
+  default:["Based on your recent pH logs, everything seems within a manageable range. Keep tracking daily for the best insights.","Log your pH again tomorrow to see if the trend continues. Consistency is key!","Your symptoms could relate to hormonal changes in your cycle — Day 14 is your ovulation window, which can cause minor changes."],
+  bv:"Bacterial Vaginosis (BV) occurs when the balance of bacteria in your vagina is disrupted. Signs include a fishy odour, thin grey or white discharge, and pH above 4.5. It's very common and treatable — please see a doctor rather than self-treating.",
+  ph:"A pH of 4.8 is slightly above the ideal range of 3.8–4.5. Worth monitoring over the next few days. If you also notice unusual odour or discharge, it could be early BV. Log your symptoms and I'll flag any concerning patterns.",
+  discharge:"Changes in discharge can be normal, especially around ovulation. However, if it's accompanied by an unusual odour, changes in colour (yellow/green/grey), or itching — please log these and consider seeing a healthcare provider.",
+  doctor:"See a doctor if: pH stays above 4.5 for 3+ days, you have persistent itching or burning, unusual coloured discharge, a strong fishy odour, or pain during urination. Better safe than sorry — your health matters! 💙"
+};
+function getResp(msg){const l=msg.toLowerCase();if(l.includes('bv')||l.includes('bacterial'))return aiR.bv;if(l.includes('4.8')||l.includes('ph was')||l.includes('ph reading'))return aiR.ph;if(l.includes('discharge'))return aiR.discharge;if(l.includes('doctor')||l.includes('see a'))return aiR.doctor;return aiR.default[Math.floor(Math.random()*3)]}
+function addMsg(text,isUser){const c=document.getElementById('chatMessages');const d=document.createElement('div');d.className='msg '+(isUser?'user':'ai');d.innerHTML=isUser?`<div class="msg-bubble">${text}</div>`:`<div class="msg-avatar">🤖</div><div class="msg-bubble">${text}</div>`;c.appendChild(d);c.scrollTop=c.scrollHeight}
+function sendChat(){const i=document.getElementById('chatInput');const msg=i.value.trim();if(!msg)return;i.value='';document.getElementById('quickReplies').style.display='none';addMsg(msg,true);const c=document.getElementById('chatMessages');const t=document.createElement('div');t.className='msg ai';t.id='typingMsg';t.innerHTML=`<div class="msg-avatar">🤖</div><div class="msg-bubble"><div class="typing"><span></span><span></span><span></span></div></div>`;c.appendChild(t);c.scrollTop=c.scrollHeight;setTimeout(()=>{t.remove();addMsg(getResp(msg),false)},1200+Math.random()*600)}
+function sendQuick(msg){document.getElementById('chatInput').value=msg;sendChat()}
+
+// Articles
+function openArticle(i){const a=articles[i];document.getElementById('articleContent').innerHTML=`<button class="modal-close" onclick="document.getElementById('articleModal').classList.remove('show')">Done</button><div class="modal-cat">${a.cat}</div><div class="modal-title">${a.title}</div><div class="modal-body">${a.body}</div>`;document.getElementById('articleModal').classList.add('show')}
+function closeArticle(e){if(e.target===document.getElementById('articleModal'))document.getElementById('articleModal').classList.remove('show')}
+function filterCat(el){document.querySelectorAll('.cat-pill').forEach(p=>p.classList.remove('active'));el.classList.add('active')}
+
+// Notifications
+function toggleNotif(){document.getElementById('notifPanel').classList.toggle('show')}
+function closeNotif(e){if(e.target===document.getElementById('notifPanel'))document.getElementById('notifPanel').classList.remove('show')}
+
+// Toast
+function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2200)}
+</script>
+</body>
+</html>
